@@ -281,12 +281,12 @@ def define_G(input_nc, output_nc, ngf, netG, norm='batch', use_dropout=False,
                             norm_layer=norm_layer, 
                             use_dropout=use_dropout, 
                             use_sab=use_sab)
-    elif netG == 'srgan':
-        # 超分辨率GAN生成器
-        net = SRGenerator()
-    elif netG == 'VDSR':
-        # 深度超分辨率网络
-        net = VDCGAN()
+    # elif netG == 'srgan':
+    #     # 超分辨率GAN生成器
+    #     net = SRGenerator()
+    # elif netG == 'VDSR':
+    #     # 深度超分辨率网络
+    #     net = VDCGAN()
     else:
         raise NotImplementedError('Generator model name [%s] is not recognized' % netG)
     
@@ -695,7 +695,7 @@ class UnetGenerator(nn.Module):
         - 输入: 单角度超声重建图像 (1通道)
         - 输出: 增强后的超声图像 (1通道)
         - 尺寸: 256×256 (使用unet_256配置)
-        - 层数: 8层下采样 (num_downs=8)
+        - 层数: 8层下采样 (num_downs=8) 64*8=512
     
     优势:
         - 跳跃连接保持细节信息
@@ -704,8 +704,13 @@ class UnetGenerator(nn.Module):
         - 训练相对稳定
     """
 
-    def __init__(self, input_nc, output_nc, num_downs, ngf=64, norm_layer=nn.BatchNorm2d, 
-                 use_dropout=False, use_sab=False):
+    def __init__(self, input_nc, 
+                 output_nc, 
+                 num_downs, 
+                 ngf=64, 
+                 norm_layer=nn.BatchNorm2d, 
+                 use_dropout=False, 
+                 use_sab=False):
         """
         构造U-Net生成器
         
@@ -974,7 +979,7 @@ class UnetSkipConnectionBlock(nn.Module):
                 # 非中间层: 使用像素注意力增强跳跃连接
                 x2 = self.pa(x)           # 计算注意力权重
                 x3 = torch.mul(x2, x)     # 注意力调制输入特征
-                # 跳跃连接: 拼接调制后的输入和处理后的特征
+                # 跳跃连接: 拼接调制后的输入和处理后的特征，在通道维度直接相加
                 return torch.cat([x3, self.model(x)], 1)
             else:
                 # 中间层: 标准跳跃连接
