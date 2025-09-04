@@ -1,3 +1,4 @@
+from __future__ import print_function
 #!/usr/bin/env python3
 """
 AUGAN 网络架构模块详细注释版本
@@ -38,7 +39,7 @@ network.py 核心组件总结:
 AUGAN通过组合这些组件实现超声图像增强功能。
 """
 
-from __future__ import print_function
+
 import torch
 import torch.nn as nn
 from torch.nn import init

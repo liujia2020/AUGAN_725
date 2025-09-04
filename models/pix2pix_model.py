@@ -7,7 +7,8 @@ pix2pix_model.py - AUGAN的核心训练模型，实现条件GAN的完整训练�
 
 import torch
 from .base_model import BaseModel
-from . import network
+# from . import network
+import models.network_mvp as network
 import torchvision
 from thop import profile
 
