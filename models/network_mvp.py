@@ -212,17 +212,17 @@ class GANLoss(nn.Module):
                 loss = prediction.mean()
         return loss
 
-class FeatureExtractor(nn.Module):
+# class FeatureExtractor(nn.Module):
 
-    def __init__(self, cnn, feature_layer=11):
+#     def __init__(self, cnn, feature_layer=11):
 
-        super(FeatureExtractor, self).__init__()
-        # 只保留到指定层的网络结构
-        self.features = nn.Sequential(*list(cnn.features.children())[:(feature_layer+1)])
+#         super(FeatureExtractor, self).__init__()
+#         # 只保留到指定层的网络结构
+#         self.features = nn.Sequential(*list(cnn.features.children())[:(feature_layer+1)])
 
-    def forward(self, x):
-        """提取特征"""
-        return self.features(x)
+#     def forward(self, x):
+#         """提取特征"""
+#         return self.features(x)
 
 '''
 1️⃣ 生成器 (Generator):
@@ -542,5 +542,3 @@ class NLayerDiscriminator(nn.Module):
     def forward(self, input):
 
         return self.model(input)
-
-
