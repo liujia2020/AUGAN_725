@@ -9,7 +9,7 @@ import torch
 from .base_model import BaseModel
 # from . import network
 import models.network_mvp as network
-import torchvision
+# import torchvision
 from thop import profile
 
 
@@ -33,7 +33,7 @@ class Pix2PixModel(BaseModel):
             )
             # 添加L1损失权重参数
             parser.add_argument('--lambda_L1', type=float, default=1, 
-                              help='weight for L1 loss')
+                              help='weight for L1 loss(实际使用L2)')
 
         return parser
 
@@ -42,15 +42,15 @@ class Pix2PixModel(BaseModel):
         
         # 定义要打印的损失名称
         # 训练脚本会调用get_current_losses()获取这些损失值
-        self.loss_names = ['G_GAN', 'G_L1', 'D_real', 'D_fake']
+        self.loss_names = ['G_GAN', 'G_L2', 'D_real', 'D_fake']
         
         # 创建VGG特征提取器用于感知损失
         # 使用预训练的VGG19网络提取高级特征
-        vgg = torchvision.models.vgg19(pretrained=True)
-        # 修改第一层以接受单通道输入 (原本是3通道RGB)
-        vgg.features[0] = torch.nn.Conv2d(1, 64, kernel_size=3, padding=1)
-        # 创建特征提取器，提取第11层的特征用于感知损失
-        self.feature_extractor = network.FeatureExtractor(vgg)
+        # vgg = torchvision.models.vgg19(pretrained=True)
+        # # 修改第一层以接受单通道输入 (原本是3通道RGB)
+        # vgg.features[0] = torch.nn.Conv2d(1, 64, kernel_size=3, padding=1)
+        # # 创建特征提取器，提取第11层的特征用于感知损失
+        # self.feature_extractor = network.FeatureExtractor(vgg)
         
         # 定义要保存的模型名称
         if self.isTrain:
@@ -161,24 +161,7 @@ class Pix2PixModel(BaseModel):
         # 生成图像应该与真实图像在像素级别相似
         # 使用L2损失而非L1损失，L2对大误差惩罚更重
         self.loss_G_L2 = self.criterionL2(self.fake_B, self.real_B) * self.opt.lambda_L1
-        
-        # ===== 3. 感知损失 (VGG特征损失) =====
-        # 使用预训练VGG网络提取高级特征
-        # 在特征空间而非像素空间比较图像相似性
-        
-        # # 提取真实图像的VGG特征
-        # self.real_Bf = self.feature_extractor(self.real_B.cpu()).cuda() # [B, 256, H', W']，
-        # # 提取生成图像的VGG特征
-        # self.fake_Bf = self.feature_extractor(self.fake_B.cpu()).cuda() # [B, 256, H', W']，
-        
-        # # 拼接特征用于损失计算
-        # pred_fake1 = torch.cat((self.real_Bf, self.fake_Bf), 1) # [B, 512, H', W']
-        # # 计算感知损失 (特征应该相似)
-        # self.contentLoss = self.criterionGAN(pred_fake1, True)
 
-        # ===== 4. 总损失和反向传播 =====
-        # 组合所有损失项
-        # self.loss_G = self.loss_G_GAN + self.loss_G_L2 + self.contentLoss
         self.loss_G = self.loss_G_GAN + self.loss_G_L2
         # 反向传播计算梯度
         self.loss_G.backward()
