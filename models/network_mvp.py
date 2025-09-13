@@ -212,28 +212,7 @@ class GANLoss(nn.Module):
                 loss = prediction.mean()
         return loss
 
-# class FeatureExtractor(nn.Module):
 
-#     def __init__(self, cnn, feature_layer=11):
-
-#         super(FeatureExtractor, self).__init__()
-#         # 只保留到指定层的网络结构
-#         self.features = nn.Sequential(*list(cnn.features.children())[:(feature_layer+1)])
-
-#     def forward(self, x):
-#         """提取特征"""
-#         return self.features(x)
-
-'''
-1️⃣ 生成器 (Generator):
-  类名: UnetGenerator
-  位置: models/network. Py 第 385 行
-  作用: 单角度图像 → 高质量图像
-  架构: U-Net (编码器-解码器+跳跃连接)
-  输入: real_A (1, 512, 384)
-  输出: fake_B (1, 512, 384)
-  为什么选择: U-Net 适合像素级图像翻译，保持细节
-  '''
 class UnetGenerator(nn.Module):
 
 
