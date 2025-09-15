@@ -1,0 +1,62 @@
+# AUGAN 数据集配置文件
+# 支持灵活配置多个PICMUS数据集
+
+datasets:
+  simulation:
+    resolution_distorsion:
+      enabled: true
+      weight: 1.0        # 数据集权重，影响采样比例
+      data_type: "iq"    # 数据类型：iq 或 rf
+      description: "仿真分辨率失真数据"
+    contrast_speckle:
+      enabled: true
+      weight: 1.2        # 更高权重，更多采样
+      data_type: "iq"
+      description: "仿真对比度斑点数据"
+      
+  experiments:
+    resolution_distorsion:
+      enabled: false      # 可以暂时禁用
+      weight: 0.8
+      data_type: "iq"
+      description: "实验分辨率失真数据"
+    contrast_speckle:
+      enabled: true
+      weight: 1.0
+      data_type: "iq"
+      description: "实验对比度斑点数据"
+    carotid_cross:
+      enabled: false      # 暂时不使用颈动脉数据
+      weight: 1.0
+      data_type: "iq"
+      description: "实验颈动脉横截面数据"
+    carotid_long:
+      enabled: false
+      weight: 1.0
+      data_type: "iq"
+      description: "实验颈动脉纵截面数据"
+
+# 数据处理配置
+data_processing:
+  mixing_strategy: "weighted"    # 混合策略：concatenate, interleave, weighted
+  single_angle: [1]             # 单角度DAS的角度索引
+  target_size: [512, 384]       # 目标图像尺寸
+  normalize: true               # 是否归一化
+  augmentation:
+    enabled: true
+    flip_horizontal: true
+    add_noise: false
+    noise_std: 0.01
+
+# 训练配置
+training:
+  batch_size: 1
+  shuffle: true
+  validation_split: 0.1
+  test_split: 0.1
+  
+# 路径配置
+paths:
+  dataset_root: "./datasets"
+  output_dir: "./processed_data"
+  cache_dir: "./cache"

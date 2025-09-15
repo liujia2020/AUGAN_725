@@ -120,3 +120,127 @@ def load_dataset(opt, phase, dataset_index=0):
     dataset.zlims = zlims
     
     return dataset
+
+
+def load_multiple_datasets():
+    """
+    加载多个PICMUS数据集进行联合训练 - 基于现有简化逻辑
+    """
+    all_input_images = []
+    all_target_images = []
+    
+    # 定义要使用的数据集配置
+    dataset_configs = [
+        ("simulation", "resolution_distorsion", "iq"),
+        ("simulation", "contrast_speckle", "iq"),
+        ("experiments", "resolution_distorsion", "iq"),
+        ("experiments", "contrast_speckle", "iq"),
+        # 可以继续添加更多...
+    ]
+    
+    print(f"🔄 准备加载 {len(dataset_configs)} 个PICMUS数据集...")
+    
+    for i, (acq, target, dtype) in enumerate(dataset_configs):
+        try:
+            print(f"📡 加载数据集 {i+1}/{len(dataset_configs)}: {acq}_{target}_{dtype}")
+            
+            # 🎯 使用你现有的加载逻辑
+            plane_wave_data = load_datasets(acq, target, dtype)
+            
+            # 获取多角度DAS（目标图像）
+            das_multi, iqdata, xlims, zlims = create_network(plane_wave_data, list(range(75)))
+            multi_img = mk_img(das_multi, iqdata)
+            
+            # 🎯 使用你现有的预处理函数
+            def preprocess(img):
+                img = (img - np.min(img)) / (np.max(img) - np.min(img) + 1e-8)
+                return img.astype(np.float32)
+            
+            multi_img_processed = preprocess(multi_img)
+            
+            # 为当前数据集生成多对图像（使用不同单角度）
+            current_input_imgs = []
+            current_target_imgs = []
+            
+            for angle_idx in range(0, 75, 5):  # 每5个角度取一个
+                try:
+                    # 单角度重建
+                    das_single, _, _, _ = create_network(plane_wave_data, [angle_idx])
+                    single_img = mk_img(das_single, iqdata)
+                    single_img_processed = preprocess(single_img)
+                    
+                    current_input_imgs.append(single_img_processed)
+                    current_target_imgs.append(multi_img_processed)
+                    
+                except Exception as angle_error:
+                    print(f"   角度 {angle_idx} 处理失败: {angle_error}")
+                    continue
+            
+            # 累积到总数据集
+            all_input_images.extend(current_input_imgs)
+            all_target_images.extend(current_target_imgs)
+            
+            print(f"✅ 数据集 {acq}_{target} 加载完成，获得 {len(current_input_imgs)} 个图像对")
+            
+        except Exception as e:
+            print(f"❌ 数据集 {acq}_{target} 加载失败: {e}")
+            continue
+    
+    print(f"🎉 多数据集加载完成！总计: {len(all_input_images)} 个图像对")
+    return all_input_images, all_target_images
+
+
+def load_dataset_multi(opt, phase, dataset_index=0):
+    """
+    多数据集加载函数 - 新增
+    """
+    print(f"📂 加载 {phase} 数据集（多数据集模式）...")
+    
+    try:
+        # 使用多数据集加载
+        input_images, target_images = load_multiple_datasets()
+        
+        if not input_images or not target_images:
+            raise ValueError("没有成功加载任何数据")
+        
+        # 简单的数据集划分
+        total_len = len(input_images)
+        if phase == 'train':
+            start_idx = 0
+            end_idx = int(total_len * 0.8)
+        elif phase == 'val':
+            start_idx = int(total_len * 0.8)
+            end_idx = int(total_len * 0.9)
+        else:  # test
+            start_idx = int(total_len * 0.9)
+            end_idx = total_len
+        
+        # 获取对应阶段的数据
+        phase_input = input_images[start_idx:end_idx]
+        phase_target = target_images[start_idx:end_idx]
+        
+        # 创建数据集
+        dataset = AUGANDataset(phase_input, phase_target, phase)
+        
+        # 添加兼容属性（使用第一个数据集的信息）
+        try:
+            plane_wave_data = load_datasets("simulation", "resolution_distorsion", "iq")
+            das_multi, iqdata, xlims, zlims = create_network(plane_wave_data, list(range(75)))
+            dataset.das = das_multi
+            dataset.iqdata = iqdata
+            dataset.xlims = xlims
+            dataset.zlims = zlims
+        except:
+            dataset.das = None
+            dataset.iqdata = None
+            dataset.xlims = None
+            dataset.zlims = None
+        
+        print(f"✅ 多数据集 {phase} 数据加载完成: {len(dataset)} 个样本")
+        return dataset
+        
+    except Exception as e:
+        print(f"❌ 多数据集加载失败: {e}")
+        print("🔄 回退到单数据集模式...")
+        # 回退到原有的load_dataset函数
+        return load_dataset(opt, phase, dataset_index)
