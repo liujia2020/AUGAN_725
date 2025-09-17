@@ -13,7 +13,8 @@ import pandas as pd
 import os
 import math
 from cubdl.PixelGrid import make_pixel_grid
-import pytorch_ssim
+# import pytorch_ssim
+from utils.pytorch_ssim import ssim as pytorch_ssim_ssim
 import torch
 from sklearn import metrics
 
@@ -631,8 +632,8 @@ class image_evaluation():
         ima2 = torch.from_numpy(img2)
         ima1 = torch.unsqueeze(ima1, 1)  # 添加通道维度
         ima2 = torch.unsqueeze(ima2, 1)
-        self.SSIM = pytorch_ssim.ssim(ima1, ima2)
-
+        # self.SSIM = pytorch_ssim.ssim(ima1, ima2)
+        self.SSIM = pytorch_ssim_ssim(ima1, ima2)
         # ===== 计算其他指标 =====
         self.L1Loss = l1loss(img1, img2)  # L1损失
         self.L2Loss = l2loss(img1, img2)  # L2损失

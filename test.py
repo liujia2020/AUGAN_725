@@ -36,8 +36,12 @@ if __name__ == '__main__':
     train_bar = tqdm(train_loader)
     i = 1
     # Testing process
-    for data, target5 in train_bar:
-        n1, n2, n3 = data.shape
+    # for data, target5 in train_bar:
+    for batch_data in train_bar:
+        data = batch_data['A']
+        target5 = batch_data['B']
+        # n1, n2, n3 = data.shape
+        batch_size, n1, n2, n3 = data.shape
         data = torch.reshape(data, (1, 1, n2, n3))
         # target4 = torch.reshape(target4, (1, 1, n2, n3))
         target5 = torch.reshape(target5, (1, 1, n2, n3))
@@ -53,6 +57,18 @@ if __name__ == '__main__':
         # img_eva.evaluate(target4[0].cpu().detach().numpy(), target5[0].cpu().detach().numpy(), opt,
         #                  plane_wave_data, test_type, i)
         # test_image(data[0].cpu(), target1[0].cpu(), target5[0].cpu(), xlims, zlims, i, opt.phase)
+        
+        # 在调用 test_image 之前添加调试代码
+        print("=== 调试信息 ===")
+        print(f"模型输出范围: [{model.fake.min():.4f}, {model.fake.max():.4f}]")
+        print(f"模型输出均值: {model.fake.mean():.4f}")
 
+        # 转换为numpy后再检查
+        fake_np = model.fake[0].cpu().detach().numpy()
+        real_B_np = model.real_B[0].cpu().detach().numpy()
+        print(f"生成图像范围: [{fake_np.min():.4f}, {fake_np.max():.4f}]")
+        print(f"目标图像范围: [{real_B_np.min():.4f}, {real_B_np.max():.4f}]")
+
+        test_image(model.real_A[0].cpu(), model.fake[0].cpu(), model.real_B[0].cpu(), xlims, zlims,i ,opt.phase,opt.name)
         i = i + 1
     img_eva.print_results(opt) # Print the results
