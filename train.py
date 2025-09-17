@@ -15,7 +15,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from cubdl.example_picmus_torch import load_datasets,create_network,mk_img,dispaly_img
 from options.train_options import TrainOptions
 from models import create_model
-from data_process import load_dataset, test_image, load_dataset_multi  # 使用原始版本避免CUDA问题
+from data_process import load_dataset, test_image  # 使用原始版本避免CUDA问题
 from utils.util import diagnose_network
 from models.network import UnetGenerator
 import math
@@ -64,9 +64,9 @@ if __name__ == '__main__':
     start_load_time = time.time()
     
     # 使用原始数据加载（更稳定）
-    # img_dataset = load_dataset(opt, opt.phase, 0)
+    img_dataset = load_dataset(opt, opt.phase, 0)
     
-    img_dataset = load_dataset_multi(opt, opt.phase, 0)  # 🎯 使用多数据集版本
+    # img_dataset = load_dataset_multi(opt, opt.phase, 0)  # 🎯 使用多数据集版本
     print("数据集样本总数：", len(img_dataset))
     dataset_len = img_dataset.len
     

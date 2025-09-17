@@ -1,4 +1,5 @@
 {
+    "http.proxy": "http://10.255.255.254:7890",
     "python-envs.defaultEnvManager": "ms-python.python:conda",
     "python-envs.defaultPackageManager": "ms-python.python:conda",
     "python-envs.pythonProjects": []

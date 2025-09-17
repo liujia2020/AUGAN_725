@@ -29,8 +29,8 @@ from options.test_options import TestOptions
 from models import create_model
 from data_process import load_dataset, test_image
 from torch.utils.data import DataLoader, Dataset, TensorDataset
-from metrics import image_evaluation
-from cubdl_master.example_picmus_torch import load_datasets, create_network, mk_img, dispaly_img
+from utils.metrics import image_evaluation
+from cubdl.example_picmus_torch import load_datasets, create_network, mk_img, dispaly_img
 
 
 def setup_test_environment():
